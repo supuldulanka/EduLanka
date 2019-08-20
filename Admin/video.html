@@ -1,0 +1,81 @@
+<!doctype html>  
+<head>  
+   <!-- Includes for ADL's xAPI Wrapper -->  
+   <!-- Download the files from: -->  
+   <!-- https://github.com/adlnet/xAPIWrapper -->  
+   <script type="text/javascript" src="cryptojs_v3.1.2.js"></script>  
+    <script type="text/javascript" src="xapiwrapper.js"></script>  
+    <!------------------------------------->      
+      
+    <script>  
+        var playFrom = 0;  
+        jwplayer('mediaplayer1').setup({  
+          width: "480",  
+          aspectratio: "16:9",  
+          file: "big_buck_bunny.mp4",  
+          autostart: false,  
+         });  
+        // this adds the pop-up to ask for the user's name. We'll build the ACTOR definition  
+        // with this first name  
+         var firstname = prompt("What is your first name?")  
+
+        // Tell the content where to send the xAPI statements  
+         var conf = {"endpoint" : "https://lrs.adlnet.gov/xapi/",  
+           "auth" : "Basic " + toBase64("xapi-tools:xapi-tools")};  
+
+        // Tell the browser to use the variable we just defined  
+         ADL.XAPIWrapper.changeConfig(conf);  
+
+        // Record time index where user started watching  
+         jwplayer().onPlay(function(event){  
+          playFrom = jwplayer().getPosition()  
+         }); //end onPlay  
+
+        // Send statement when someone pauses the video  
+         jwplayer().onPause(function(event){  
+          var position = jwplayer().getPosition()  
+
+        //define the xapi statement being sent  
+          var pausestatement = {  
+           "actor": {  
+            "mbox": "mailto:" + firstname + "@devlearn16.com",  
+            "name": firstname,  
+            "objectType": "Agent"  
+           },  
+           "verb": {  
+            "id": "http://adlnet.gov/expapi/verbs/Play",  
+            "display": {  
+             "en-US": "Video Played"}  
+           },  
+           "object": {  
+            "id": "http://example.com/bigbuckbunnyvid.html",  
+            "definition": {  
+             "name": {"en-US": "Big Buck Bunny Video"},  
+             "description": {"en-US": "sample description"}  
+            },  
+            "objectType": "Activity"  
+           },  
+           "result": {  
+             "extensions":{  
+              "http://example.com/xapi/period_start" : playFrom,  
+              "http://example.com/xapi/period_end"     : position  
+             }  
+            }  
+            }; // end statement definition  
+
+        // Send the statement to the LRS  
+          var result = ADL.XAPIWrapper.sendStatement(pausestatement);  
+
+         }); //end onPause  
+    </script>  
+  
+</head>  
+  
+<body> 
+    
+
+    <button type="button" onclick="send_statement()">Send Statements</button>  
+</body>  
+</html>  
+
+
